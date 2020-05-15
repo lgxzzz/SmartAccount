@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:id="@+id/llLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <include layout="@layout/daily_item" />
+        <TextView
+            android:id="@+id/tvContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="content"
+            android:textSize="30sp"
+            android:visibility="gone"
+            />
+
+        <TextView
+            android:id="@+id/tvDelete"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:background="#ff0000"
+            android:textSize="20dp"
+            android:text="删除"
+            android:layout_gravity="center"
+            android:gravity="center"
+            />
+
+        <TextView
+            android:id="@+id/tvTop"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:background="#00ff00"
+            android:text="修改"
+            android:textSize="20dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            />
+    </LinearLayout>
+</RelativeLayout>
