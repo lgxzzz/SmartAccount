@@ -152,7 +152,7 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this,"两次密码不一致！",Toast.LENGTH_LONG).show();
                     return;
                 }
-                if (!mUser.getTelephone().equals(mUser.getPassword())){
+                if (mUser.getTelephone()==null){
                     Toast.makeText(RegisterActivity.this,"手机号不能为空！",Toast.LENGTH_LONG).show();
                     return;
                 }
