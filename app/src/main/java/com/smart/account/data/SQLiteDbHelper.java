@@ -11,7 +11,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
     //数据库名称
     public static final String DB_NAME = "VoiceBook.db";
     //数据库版本号
-    public static int DB_VERSION = 30;
+    public static int DB_VERSION = 40;
     //用户表
     public static final String TAB_USER = "UserInfo";
     //收支表
@@ -79,6 +79,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
     public void createTableAccountPerson(SQLiteDatabase db){
         db.execSQL("CREATE TABLE IF NOT EXISTS "+TAB_ACCOUNT_PERSON +
                 "(account_person_id varchar(60) primary key, " +
+                "UserId varchar(60), " +           //用户id
                 "account_person_name varchar(60), " + //人员名称
                 "y_balance varchar(60))");//余额
     }

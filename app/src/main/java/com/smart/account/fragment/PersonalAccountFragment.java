@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,8 @@ import com.smart.account.view.LeftSwipeMenuRecyclerView;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -91,7 +94,18 @@ public class PersonalAccountFragment extends Fragment {
             public void run() {
                 mAllBudgets.clear();
                 User mUser = DBManger.getInstance(getContext()).mUser;
-                mAllBudgets = DBManger.getInstance(getContext()).getAllBudgetDataByAccountName(mUser.getUserName());
+                mAllBudgets = DBManger.getInstance(getContext()).getAllBudgetDataByUserID();
+                Collections.sort(mAllBudgets, new Comparator<Budget>() {
+                    @Override
+                    public int compare(Budget budget, Budget t1) {
+                        long time1 = DateUtil.dateToStamp(budget.getDate());
+                        long time2 = DateUtil.dateToStamp(t1.getDate());
+                        if (time1>time2){
+                            return -1;
+                        }
+                        return 1;
+                    }
+                });
                 AccountPerson accountPerson = DBManger.getInstance(getContext()).getAccountPersonByName(mUser.getUserName());
                 if (accountPerson.getBalance()!=null){
                     mRemainTv.setText("余额："+accountPerson.getBalance());

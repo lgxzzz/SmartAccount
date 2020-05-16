@@ -27,6 +27,8 @@ import com.smart.account.view.LeftSwipeMenuRecyclerView;
 import com.smart.account.view.SearchAcPersonRemainDialog;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -126,6 +128,17 @@ public class AllPersonAccountFragment extends Fragment {
 //                mAlldailySummaries = DBManger.getInstance(getContext()).getAllDailyData();
                 mAllBudgets.clear();
                 mAllBudgets = DBManger.getInstance(getContext()).getAllBudgetData();
+                Collections.sort(mAllBudgets, new Comparator<Budget>() {
+                    @Override
+                    public int compare(Budget budget, Budget t1) {
+                        long time1 = DateUtil.dateToStamp(budget.getDate());
+                        long time2 = DateUtil.dateToStamp(t1.getDate());
+                        if (time1>time2){
+                            return -1;
+                        }
+                        return 1;
+                    }
+                });
                 refresList();
             }
         });

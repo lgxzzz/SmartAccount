@@ -3,6 +3,7 @@ package com.smart.account.view;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +12,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.smart.account.LoginActivity;
 import com.smart.account.R;
+import com.smart.account.UpdatePwdActivity;
 import com.smart.account.bean.User;
 import com.smart.account.data.DBManger;
 
@@ -69,6 +72,9 @@ public class DeleteUserConfirmDialog extends Dialog {
                     @Override
                     public void onSuccess() {
                         Toast.makeText(getContext(),"删除用户成功！",Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(context,LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
                         if (mlistener!=null){
                             mlistener.onSuccess();
                         }

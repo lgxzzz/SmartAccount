@@ -6,41 +6,51 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.smart.account.bean.AccountPerson;
 import com.smart.account.bean.User;
 import com.smart.account.data.DBManger;
+import com.smart.account.view.SpinnerAdapter;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 
 
 public class UpdatePersonActivity extends AppCompatActivity {
 
-    private EditText mPassWordEd;
-    private EditText mRepeatPassWordEd;
+    private EditText mNowNameEd;
+    private Spinner mBeforeNameSp;
     private Button mRegBtn;
     private Button mCancelBtn;
 
-    private User mUser;
+    private AccountPerson mAccountPerson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_update);
+        setContentView(R.layout.activity_update_ac_person);
 
         init();
+        refreshPerson();
     }
 
     public void init(){
-        mUser = new User();
 
+        mNowNameEd = findViewById(R.id.now_name_ed);
+        mBeforeNameSp = findViewById(R.id.before_name_sp);
+        mRegBtn = findViewById(R.id.sure_btn);
+        mCancelBtn = findViewById(R.id.cancel_btn);
 
-        mPassWordEd = findViewById(R.id.reg_password_ed);
-        mRepeatPassWordEd = findViewById(R.id.reg_repeat_password_ed);
-        mRegBtn = findViewById(R.id.reg_btn);
-        mCancelBtn = findViewById(R.id.reg_cancle_btn);
-
-        mPassWordEd.addTextChangedListener(new TextWatcher() {
+        mNowNameEd.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -53,47 +63,24 @@ public class UpdatePersonActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                mUser.setPassword(editable.toString());
+//                mAccountPerson.setName(editable.toString());
             }
         });
 
-        mRepeatPassWordEd.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                mUser.setRepeatPassword(editable.toString());
-            }
-        });
 
         mRegBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mUser.getPassword()==null){
-                    Toast.makeText(UpdatePersonActivity.this,"密码不能为空！",Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (mUser.getRepeatPassword()==null){
-                    Toast.makeText(UpdatePersonActivity.this,"重复密码不能为空！",Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (!mUser.getRepeatPassword().equals(mUser.getPassword())){
-                    Toast.makeText(UpdatePersonActivity.this,"两次密码不一致！",Toast.LENGTH_LONG).show();
-                    return;
-                }
-                User temp = DBManger.getInstance(UpdatePersonActivity.this).mUser;;
+                String nowName = mNowNameEd.getEditableText().toString();
 
-                mUser.setTelephone(temp.getTelephone());
-                mUser.setUserName(temp.getUserName());
-                DBManger.getInstance(UpdatePersonActivity.this).updateUser(mUser, new DBManger.IListener() {
+                if (nowName.length()==0){
+                    Toast.makeText(UpdatePersonActivity.this,"名字不能为空！",Toast.LENGTH_LONG).show();
+                    return;
+                }
+                mAccountPerson = mPersonData.get(mIndex);
+                String oldName = mAccountPerson.getName();
+                mAccountPerson.setName(nowName);
+                DBManger.getInstance(UpdatePersonActivity.this).updateAccountPerson(oldName,mAccountPerson, new DBManger.IListener() {
                     @Override
                     public void onSuccess() {
                         Toast.makeText(UpdatePersonActivity.this,"修改成功！",Toast.LENGTH_LONG).show();
@@ -115,4 +102,36 @@ public class UpdatePersonActivity extends AppCompatActivity {
             }
         });
     }
+
+    int mIndex = 0;
+    List<AccountPerson> mPersonData = new ArrayList<>();
+    public void refreshPerson(){
+
+        final ArrayList<String> mPersonNameData = new ArrayList<>();
+
+        mPersonData= DBManger.getInstance(UpdatePersonActivity.this).getAllAccountPerson();
+
+        for (int i =0;i<mPersonData.size();i++){
+            AccountPerson accountPerson = mPersonData.get(i);
+            mPersonNameData.add(accountPerson.getName());
+        }
+        mAccountPerson = mPersonData.get(0);
+
+        SpinnerAdapter TypeAdapter = new SpinnerAdapter(UpdatePersonActivity.this,android.R.layout.simple_spinner_item,mPersonNameData);
+        mBeforeNameSp.setAdapter(TypeAdapter);
+        mBeforeNameSp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mIndex = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+    }
+
+
 }

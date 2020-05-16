@@ -98,7 +98,8 @@ public class UpdatePwdActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess() {
                         Toast.makeText(UpdatePwdActivity.this,"修改成功！",Toast.LENGTH_LONG).show();
-                        startActivity(new Intent(UpdatePwdActivity.this, MainActivity.class));
+                        startActivity(new Intent(UpdatePwdActivity.this, LoginActivity.class));
+                        UpdatePwdActivity.this.finish();
                     }
 
                     @Override

@@ -48,6 +48,7 @@ public class DBManger {
     }
 
 
+
     //用户登陆
     public void login(String name,String password,IListener listener){
         try{
@@ -57,10 +58,12 @@ public class DBManger {
             if (cursor.moveToFirst()){
                 String m_phone = cursor.getString(cursor.getColumnIndex("m_phone"));
                 String m_name = cursor.getString(cursor.getColumnIndex("m_name"));
+                String m_password = cursor.getString(cursor.getColumnIndex("m_password"));
 
                 mUser = new User();
                 mUser.setTelephone(m_phone);
                 mUser.setUserName(m_name);
+                mUser.setPassword(m_password);
 
                 listener.onSuccess();
             }else{
@@ -75,13 +78,18 @@ public class DBManger {
         listener.onError("未查询到该用户");
     }
 
-    //用户登陆
+    //用户删除
     public void deleteUser(String name,String tel,IListener listener){
         try{
 
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             int x = db.delete(SQLiteDbHelper.TAB_USER,"m_name =? and m_phone =?",new String[]{name,tel});
             listener.onSuccess();
+            //删除收入支出记录
+            deleteBudegetByUser(name,tel);
+            //删除人员信息
+            deleteAccountPerson(tel);
+
             db.close();
             return;
         }
@@ -90,6 +98,16 @@ public class DBManger {
         }
         listener.onError("删除用户失败!");
     }
+
+    public void deleteAccountPerson(String tel){
+        try{
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            int x = db.delete(SQLiteDbHelper.TAB_ACCOUNT_PERSON,"UserId =?",new String[]{tel});
+            db.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    };
 
     //修改用户信息
     public void updateUser(User user,IListener listener){
@@ -100,6 +118,7 @@ public class DBManger {
             values.put("m_password",user.getPassword());
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             int code = db.update(SQLiteDbHelper.TAB_USER,values,"m_phone =?",new String[]{user.getTelephone()});
+            if (listener!=null)
             listener.onSuccess();
         }catch (Exception e){
 
@@ -110,9 +129,9 @@ public class DBManger {
     public void registerUser(User user,IListener listener){
         try{
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            Cursor cursor = db.rawQuery("select * from UserInfo where m_name =? ",new String[]{user.getUserName()});
+            Cursor cursor = db.rawQuery("select * from UserInfo where m_phone =? ",new String[]{user.getTelephone()});
             if (cursor.moveToFirst()){
-                listener.onError("用户名已经被注册！");
+                listener.onError("手机号已经被注册！");
                 return;
             }
 
@@ -121,12 +140,16 @@ public class DBManger {
             values.put("m_password",user.getPassword());
             values.put("m_name",user.getUserName());
             long code = db.insert(SQLiteDbHelper.TAB_USER,null,values);
-            //添加一个用户就往人员表里添加一个人
-            insertAccountPerson(user.getUserName());
 
             mUser = new User();
             mUser.setTelephone(user.getTelephone());
             mUser.setUserName(user.getUserName());
+            mUser.setPassword(user.getPassword());
+
+            //添加一个用户就往人员表里添加一个人
+            insertAccountPerson(user.getUserName());
+
+
             createDefaultBudgetType();
             listener.onSuccess();
         }catch (Exception e){
@@ -142,6 +165,7 @@ public class DBManger {
             ContentValues values = new ContentValues();
             values.put("account_person_id",getRandomAccountPersonID());
             values.put("account_person_name",acountName);
+            values.put("UserId",mUser.getTelephone());
             long code = db.insert(SQLiteDbHelper.TAB_ACCOUNT_PERSON,null,values);
             Log.e("lgx","");
         }catch (Exception e){
@@ -153,16 +177,18 @@ public class DBManger {
         List<AccountPerson> accountPeoples = new ArrayList<>();
         try{
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            Cursor cursor = db.query(SQLiteDbHelper.TAB_ACCOUNT_PERSON,null,null,null,null,null,null);
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_ACCOUNT_PERSON,null," UserId = ? ",new String[]{mUser.getTelephone()},null,null,null);
             while (cursor.moveToNext()){
                 String account_person_id = cursor.getString(cursor.getColumnIndex("account_person_id"));
                 String account_person_name = cursor.getString(cursor.getColumnIndex("account_person_name"));
                 String y_balance = cursor.getString(cursor.getColumnIndex("y_balance"));
+                String UserId = cursor.getString(cursor.getColumnIndex("UserId"));
 
                 AccountPerson accountPerson = new AccountPerson();
                 accountPerson.setId(account_person_id);
                 accountPerson.setName(account_person_name);
                 accountPerson.setBalance(y_balance);
+                accountPerson.setUserId(UserId);
                 accountPeoples.add(accountPerson);
 
             }
@@ -216,7 +242,7 @@ public class DBManger {
     public boolean isHasCreateBudgetType(){
         try{
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET_TYPE,null," UserId=? ",new String[]{mUser.getUserName()},null,null,null);
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET_TYPE,null," UserId=? ",new String[]{mUser.getTelephone()},null,null,null);
             while (cursor.moveToNext()){
                return true;
             }
@@ -243,7 +269,7 @@ public class DBManger {
                 budgetType.setNote(ExpenseType.get(i));
                 budgetType.setType("支出");
                 budgetType.setBudegetTypeId(getRandomBudgettypeId());
-                budgetType.setUserId(mUser.getUserName());
+                budgetType.setUserId(mUser.getTelephone());
                 insertBudgetType(budgetType);
             }
 
@@ -258,7 +284,7 @@ public class DBManger {
                 budgetType.setNote(IncomeType.get(i));
                 budgetType.setType("收入");
                 budgetType.setBudegetTypeId(getRandomBudgettypeId());
-                budgetType.setUserId(mUser.getUserName());
+                budgetType.setUserId(mUser.getTelephone());
                 insertBudgetType(budgetType);
             }
             SharedPreferenceUtil.setFirstTimeUse(false,mContext);
@@ -270,24 +296,54 @@ public class DBManger {
         budgetType.setType(type);
         budgetType.setNote(note);
         budgetType.setBudegetTypeId(getRandomBudgettypeId());
-        budgetType.setUserId(mUser.getUserName());
+        budgetType.setUserId(mUser.getTelephone());
         insertBudgetType(budgetType);
     }
 
     public void updateBudget(Budget budget){
         try{
             ContentValues values = new ContentValues();
-            values.put("BudegetId",getRandomBudgetId());
+            values.put("BudegetId",budget.getBudegetId());
             values.put("date",budget.getDate());
             values.put("type",budget.getType());
             values.put("BudegetTypeId",budget.getBudegetTypeId());
             values.put("note",budget.getNote());
             values.put("num",budget.getNum());
-            values.put("UserId",mUser.getUserId());
+            values.put("UserId",mUser.getTelephone());
             values.put("account_person_name",budget.getAccount_person_name());
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             int code = db.update(SQLiteDbHelper.TAB_BUDGET,values,"BudegetId =?",new String[]{budget.getBudegetId()+""});
             int x = code;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public void updateBudget(String oldname,String newname){
+        try{
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET,null," UserId=? and account_person_name= ?",new String[]{mUser.getTelephone(),oldname},null,null,null);
+            while (cursor.moveToNext()){
+                String BudegetId = cursor.getString(cursor.getColumnIndex("BudegetId"));
+                String date = cursor.getString(cursor.getColumnIndex("date"));
+                String type = cursor.getString(cursor.getColumnIndex("type"));
+                String BudegetTypeId = cursor.getString(cursor.getColumnIndex("BudegetTypeId"));
+                String note = cursor.getString(cursor.getColumnIndex("note"));
+                String num = cursor.getString(cursor.getColumnIndex("num"));
+                String UserId = cursor.getString(cursor.getColumnIndex("UserId"));
+
+                Budget budget = new Budget();
+                budget.setBudegetTypeId(BudegetTypeId);
+                budget.setBudegetId(BudegetId);
+                budget.setType(type);
+                budget.setNote(note);
+                budget.setNum(num);
+                budget.setDate(date);
+                budget.setUserId(UserId);
+                budget.setAccount_person_name(newname);
+                updateBudget(budget);
+            }
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -305,7 +361,7 @@ public class DBManger {
             values.put("note",budge.getNote());
             values.put("num",budge.getNum());
             values.put("account_person_name",budge.getAccount_person_name());
-            values.put("UserId",mUser.getUserName());
+            values.put("UserId",mUser.getTelephone());
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             long code = db.insert(SQLiteDbHelper.TAB_BUDGET,null,values);
 
@@ -424,11 +480,11 @@ public class DBManger {
     }
 
     //获取所有的收支记录
-    public List<Budget> getAllBudgetDataByAccountName(String ac_name){
+    public List<Budget> getAllBudgetDataByUserID(){
         List<Budget> budgets = new ArrayList<>();
         try{
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET,null," account_person_name=? ",new String[]{ac_name},null,null,null);
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET,null," UserId=? and account_person_name= ?",new String[]{mUser.getTelephone(),mUser.getUserName()},null,null,null);
             while (cursor.moveToNext()){
                 String BudegetId = cursor.getString(cursor.getColumnIndex("BudegetId"));
                 String date = cursor.getString(cursor.getColumnIndex("date"));
@@ -548,6 +604,54 @@ public class DBManger {
         return dailySummaries;
     };
 
+    public void updateAccountPerson(String oldname,AccountPerson person,IListener listener){
+        try{
+            if (isExistThisAccountName(person)){
+                listener.onError("已经存在这个人员！");
+                return;
+            }else{
+                SQLiteDatabase db = mDBHelper.getWritableDatabase();
+
+                //更新人员表名字
+                ContentValues values=  new ContentValues();
+                values.put("account_person_name",person.getName());
+                int code = db.update(SQLiteDbHelper.TAB_ACCOUNT_PERSON,values,"account_person_id =?",new String[]{person.getId()});
+
+                //更新收支表的名字
+                updateBudget(oldname,person.getName());
+                //如果是用户的名字，更新用户表
+                if (oldname.equals(mUser.getUserName())){
+                    mUser.setUserName(person.getName());
+                    updateUser(mUser,null);
+                }
+                listener.onSuccess();
+                return;
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        listener.onError("更新失败！");
+    }
+
+    //判断是否已经存在这个人员
+    public boolean isExistThisAccountName(AccountPerson person){
+        try{
+
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            Cursor cursor = db.rawQuery("select * from AccountPerson where account_person_name =? and UserId= ?",new String[]{person.getName(),person.getUserId()});
+            while (cursor.moveToNext()){
+
+               return true;
+            }
+            db.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
     //根据type类型获取收支说明
     public ArrayList<String> getBudgetTypeByKey(String type){
         ArrayList<String> types = new ArrayList<>();
@@ -586,7 +690,7 @@ public class DBManger {
         String note = null;
         try{
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            Cursor cursor = db.rawQuery("select * from BudgetType where BudegetTypeId =? and UserId=?",new String[]{BudegetTypeId,mUser.getUserName()});
+            Cursor cursor = db.rawQuery("select * from BudgetType where BudegetTypeId =? and UserId=?",new String[]{BudegetTypeId,mUser.getTelephone()});
             while (cursor.moveToNext()){
 
                 note = cursor.getString(cursor.getColumnIndex("note"));
@@ -665,6 +769,16 @@ public class DBManger {
                 Budget budget = dailySummary.getmBudgets().get(i);
                 int x = db.delete(SQLiteDbHelper.TAB_BUDGET,"BudegetId =?",new String[]{budget.getBudegetId()});
             }
+            db.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteBudegetByUser(String name,String tel){
+        try{
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            int x = db.delete(SQLiteDbHelper.TAB_BUDGET,"UserId =?",new String[]{tel});
             db.close();
         }catch (Exception e){
             e.printStackTrace();

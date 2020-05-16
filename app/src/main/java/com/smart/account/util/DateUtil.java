@@ -1,6 +1,8 @@
 package com.smart.account.util;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class DateUtil {
     public static String getCurrentDate(){
@@ -81,5 +83,18 @@ public class DateUtil {
         return 0;
     }
 
+    public static long dateToStamp(String str){
+        try{
+            String time = str.replace("年","-").replace("月","-").replace("日","-");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = simpleDateFormat.parse(time);
+            long ts = date.getTime();
+            return ts;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
 
 }

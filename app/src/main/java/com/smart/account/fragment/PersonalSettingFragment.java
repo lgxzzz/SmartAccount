@@ -11,8 +11,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.smart.account.DeleteUserActivity;
-import com.smart.account.ForgetPwdActivity;
-import com.smart.account.LoginActivity;
 import com.smart.account.R;
 import com.smart.account.UpdatePersonActivity;
 import com.smart.account.UpdatePwdActivity;
@@ -23,6 +21,7 @@ public class PersonalSettingFragment extends Fragment {
     Button mUpdatePwdBtn;
     Button mUpdatePersonBtn;
     Button mDeleteUserBtn;
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -68,6 +67,7 @@ public class PersonalSettingFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
     };
 
 }
