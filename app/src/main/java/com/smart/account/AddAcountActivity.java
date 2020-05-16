@@ -13,19 +13,23 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.smart.account.bean.AccountPerson;
 import com.smart.account.bean.Budget;
+import com.smart.account.bean.User;
 import com.smart.account.data.DBManger;
 import com.smart.account.util.DateUtil;
 import com.smart.account.view.DatePickDialog;
 import com.smart.account.view.SpinnerAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class AddAcountActivity extends AppCompatActivity{
 
     Spinner mInExSp;
     Spinner mTypeSp;
+    Spinner mPersonSp;
 
     EditText mDateEd;
     EditText mNumEd;
@@ -39,7 +43,7 @@ public class AddAcountActivity extends AppCompatActivity{
 
     Budget mBudget;
 
-
+    boolean isPersonal = true;
 
 
     @Override
@@ -51,10 +55,14 @@ public class AddAcountActivity extends AppCompatActivity{
     }
 
     public void initView(){
+        //是否个人模式
+        isPersonal = getIntent().getBooleanExtra("is_person",true);
+
         mBudget = new Budget();
 
         mInExSp = this.findViewById(R.id.income_exp_sp);
         mTypeSp = this.findViewById(R.id.type_sp);
+        mPersonSp = this.findViewById(R.id.person_sp);
         mDateEd = this.findViewById(R.id.reg_date_ed);
         mNumEd = this.findViewById(R.id.add_money_ed);
         mNoteEd = this.findViewById(R.id.add_note_ed);
@@ -182,6 +190,7 @@ public class AddAcountActivity extends AppCompatActivity{
 
     public void initData() {
         refreshBudgetType();
+        refreshPerson();
     }
 
     public void refreshBudgetType(){
@@ -205,4 +214,34 @@ public class AddAcountActivity extends AppCompatActivity{
         mBudget.setBudegetTypeId(budgetid);
     }
 
+    public void refreshPerson(){
+        List<AccountPerson> mPersonData = new ArrayList<>();
+        final ArrayList<String> mPersonNameData = new ArrayList<>();
+        if (isPersonal){
+            User mUser = DBManger.getInstance(getApplicationContext()).mUser;
+            mPersonNameData.add(mUser.getUserName());
+        }else{
+            mPersonData= DBManger.getInstance(AddAcountActivity.this).getAllAccountPerson();
+            for (int i =0;i<mPersonData.size();i++){
+                AccountPerson accountPerson = mPersonData.get(i);
+                mPersonNameData.add(accountPerson.getName());
+            }
+        }
+        mBudget.setAccount_person_name(mPersonNameData.get(0));
+
+        SpinnerAdapter TypeAdapter = new SpinnerAdapter(AddAcountActivity.this,android.R.layout.simple_spinner_item,mPersonNameData);
+        mPersonSp.setAdapter(TypeAdapter);
+        mPersonSp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mBudget.setAccount_person_name(mPersonNameData.get(position));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+    }
 }

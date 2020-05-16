@@ -41,10 +41,12 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.Holder> {
         final Budget budget = this.mBudgets.get(position);
         holder.mDateTv.setText(budget.getDate());
         View item = LayoutInflater.from(mContext).inflate(R.layout.budget_item,null);
+        TextView persontv = item.findViewById(R.id.person_tv);
         TextView typeTv = item.findViewById(R.id.type_tv);
         TextView numTv = item.findViewById(R.id.num_tv);
         String typenote = DBManger.getInstance(mContext).getBudgetTypeByID(budget.getBudegetTypeId());
         typeTv.setText(typenote);
+        persontv.setText(budget.getAccount_person_name());
         numTv.setText(budget.getNum());
         holder.mDetailViewGroup.addView(item);
     }

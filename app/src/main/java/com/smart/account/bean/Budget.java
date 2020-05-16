@@ -8,6 +8,7 @@ public class Budget {
     String BudegetTypeId;
     String note;
     String num;
+    String account_person_name;
 
     public String getUserId() {
         return UserId;
@@ -63,5 +64,13 @@ public class Budget {
 
     public void setNum(String num) {
         this.num = num;
+    }
+
+    public String getAccount_person_name() {
+        return account_person_name;
+    }
+
+    public void setAccount_person_name(String account_person_name) {
+        this.account_person_name = account_person_name;
     }
 }

@@ -37,7 +37,6 @@
             android:id="@+id/reg_date_ed"
             android:background="@drawable/backgroud1"
             >
-
         </EditText>
     </LinearLayout>
     <LinearLayout
@@ -123,16 +122,16 @@
             >
 
         </TextView>
-        <EditText
+        <Spinner
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:id="@+id/search_person_ed"
+            android:id="@+id/search_person_sp"
             android:layout_weight="1"
             android:background="@drawable/backgroud1"
             >
 
-        </EditText>
+        </Spinner>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
