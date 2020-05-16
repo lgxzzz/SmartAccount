@@ -11,17 +11,15 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
     //数据库名称
     public static final String DB_NAME = "VoiceBook.db";
     //数据库版本号
-    public static int DB_VERSION = 24;
+    public static int DB_VERSION = 30;
     //用户表
     public static final String TAB_USER = "UserInfo";
     //收支表
     public static final String TAB_BUDGET = "Budget";
     //收支类型表
     public static final String TAB_BUDGET_TYPE = "BudgetType";
-    //创建all表
-    public static final String TAB_BUDGET_ALL = "BudgetAll";
-    //创建all表
-    public static final String TAB_BUDGET_REMAINT = "BudgetYue";
+    //创建人员表
+    public static final String TAB_ACCOUNT_PERSON = "AccountPerson";
 
     Context context;
     public SQLiteDbHelper(Context context){
@@ -34,8 +32,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
         createTableUser(db);
         createTableBudget(db);
         createTableBudgetType(db);
-        createTableAll(db);
-        createTableRemain(db);
+        createTableAccountPerson(db);
     }
 
     @Override
@@ -44,8 +41,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS "+TAB_USER);
         db.execSQL("DROP TABLE IF EXISTS "+TAB_BUDGET);
         db.execSQL("DROP TABLE IF EXISTS "+TAB_BUDGET_TYPE);
-        db.execSQL("DROP TABLE IF EXISTS "+TAB_BUDGET_ALL);
-        db.execSQL("DROP TABLE IF EXISTS "+TAB_BUDGET_REMAINT);
+        db.execSQL("DROP TABLE IF EXISTS "+TAB_ACCOUNT_PERSON);
         onCreate(db);
     }
 
@@ -66,6 +62,7 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
                 "type varchar(60), " +           // 支出 收入
                 "BudegetTypeId varchar(60), " +  //收支类型
                 "note varchar(60), " +           //备注
+                "account_person_name varchar(60), " + //人员名称
                 "num varchar(60))");             //金额
     }
 
@@ -78,19 +75,11 @@ public class SQLiteDbHelper extends SQLiteOpenHelper {
                 "note varchar(60))");    // 服饰 购物等
     }
 
-    //创建all表
-    public void createTableAll(SQLiteDatabase db){
-        db.execSQL("CREATE TABLE IF NOT EXISTS "+TAB_BUDGET_ALL +
-                "(a_name varchar(60) primary key, " +
-                "a_use varchar(60), " +   // 支出 收入
-                "a_cost varchar(60), " +   // 支出 收入
-                "a_time varchar(60))");    // 服饰 购物等
-    }
-
-    //创建余额表
-    public void createTableRemain(SQLiteDatabase db){
-        db.execSQL("CREATE TABLE IF NOT EXISTS "+TAB_BUDGET_REMAINT +
-                "(y_name varchar(60) primary key, " +
-                "y_balance varchar(60))");
+    //创建人员表
+    public void createTableAccountPerson(SQLiteDatabase db){
+        db.execSQL("CREATE TABLE IF NOT EXISTS "+TAB_ACCOUNT_PERSON +
+                "(account_person_id varchar(60) primary key, " +
+                "account_person_name varchar(60), " + //人员名称
+                "y_balance varchar(60))");//余额
     }
 }

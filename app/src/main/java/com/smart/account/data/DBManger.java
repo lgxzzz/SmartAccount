@@ -11,6 +11,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
 
+import com.smart.account.bean.AccountPerson;
 import com.smart.account.bean.Budget;
 import com.smart.account.bean.BudgetType;
 import com.smart.account.bean.DailySummary;
@@ -74,14 +75,31 @@ public class DBManger {
         listener.onError("未查询到该用户");
     }
 
+    //用户登陆
+    public void deleteUser(String name,String tel,IListener listener){
+        try{
+
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            int x = db.delete(SQLiteDbHelper.TAB_USER,"m_name =? and m_phone =?",new String[]{name,tel});
+            listener.onSuccess();
+            db.close();
+            return;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        listener.onError("删除用户失败!");
+    }
+
     //修改用户信息
     public void updateUser(User user,IListener listener){
         try{
             ContentValues values = new ContentValues();
-            values.put("UserName",user.getUserName());
-            values.put("Password",user.getPassword());
+            values.put("m_phone",user.getTelephone());
+            values.put("m_name",user.getUserName());
+            values.put("m_password",user.getPassword());
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            int code = db.update(SQLiteDbHelper.TAB_USER,values,"UserId =?",new String[]{user.getUserId()+""});
+            int code = db.update(SQLiteDbHelper.TAB_USER,values,"m_phone =?",new String[]{user.getTelephone()});
             listener.onSuccess();
         }catch (Exception e){
 
@@ -103,6 +121,9 @@ public class DBManger {
             values.put("m_password",user.getPassword());
             values.put("m_name",user.getUserName());
             long code = db.insert(SQLiteDbHelper.TAB_USER,null,values);
+            //添加一个用户就往人员表里添加一个人
+            insertAccountPerson(user.getUserName());
+
             mUser = new User();
             mUser.setTelephone(user.getTelephone());
             mUser.setUserName(user.getUserName());
@@ -113,6 +134,74 @@ public class DBManger {
         }
 
     };
+
+    //添加人员
+    public void insertAccountPerson(String acountName){
+        try{
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("account_person_id",getRandomAccountPersonID());
+            values.put("account_person_name",acountName);
+            long code = db.insert(SQLiteDbHelper.TAB_ACCOUNT_PERSON,null,values);
+            Log.e("lgx","");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public List<AccountPerson> getAllAccountPerson(){
+        List<AccountPerson> accountPeoples = new ArrayList<>();
+        try{
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_ACCOUNT_PERSON,null,null,null,null,null,null);
+            while (cursor.moveToNext()){
+                String account_person_id = cursor.getString(cursor.getColumnIndex("account_person_id"));
+                String account_person_name = cursor.getString(cursor.getColumnIndex("account_person_name"));
+                String y_balance = cursor.getString(cursor.getColumnIndex("y_balance"));
+
+                AccountPerson accountPerson = new AccountPerson();
+                accountPerson.setId(account_person_id);
+                accountPerson.setName(account_person_name);
+                accountPerson.setBalance(y_balance);
+                accountPeoples.add(accountPerson);
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return accountPeoples;
+    }
+
+    public AccountPerson getAccountPersonByName(String name){
+        AccountPerson accountPerson = new AccountPerson();
+        try{
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_ACCOUNT_PERSON,null," account_person_name=? ",new String[]{name},null,null,null);
+            while (cursor.moveToNext()){
+
+                String account_person_id = cursor.getString(cursor.getColumnIndex("account_person_id"));
+                String account_person_name = cursor.getString(cursor.getColumnIndex("account_person_name"));
+                String y_balance = cursor.getString(cursor.getColumnIndex("y_balance"));
+
+                accountPerson.setId(account_person_id);
+                accountPerson.setName(account_person_name);
+                accountPerson.setBalance(y_balance);
+            }
+            db.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return accountPerson;
+    }
+
+    //生成随机10位的userid
+    public String getRandomAccountPersonID(){
+        String strRand="ap" ;
+        for(int i=0;i<10;i++){
+            strRand += String.valueOf((int)(Math.random() * 10)) ;
+        }
+        return strRand;
+    }
 
     //生成随机10位的userid
     public String getRandomUserID(){
@@ -127,7 +216,7 @@ public class DBManger {
     public boolean isHasCreateBudgetType(){
         try{
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET_TYPE,null," UserId=? ",new String[]{mUser.getUserId()},null,null,null);
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET_TYPE,null," UserId=? ",new String[]{mUser.getUserName()},null,null,null);
             while (cursor.moveToNext()){
                return true;
             }
@@ -144,8 +233,8 @@ public class DBManger {
         boolean isFirst = SharedPreferenceUtil.getFirstTimeUse(mContext);
         if (!isHasCreateBudgetType()){
             List<String> ExpenseType = new ArrayList<>();
-            ExpenseType.add("购物");
             ExpenseType.add("饮食");
+            ExpenseType.add("购物");
             ExpenseType.add("服饰");
             ExpenseType.add("其他");
 
@@ -187,22 +276,22 @@ public class DBManger {
 
     public void updateBudget(Budget budget){
         try{
-
-
+            ContentValues values = new ContentValues();
+            values.put("BudegetId",getRandomBudgetId());
+            values.put("date",budget.getDate());
+            values.put("type",budget.getType());
+            values.put("BudegetTypeId",budget.getBudegetTypeId());
+            values.put("note",budget.getNote());
+            values.put("num",budget.getNum());
+            values.put("UserId",mUser.getUserId());
+            values.put("account_person_name",budget.getAccount_person_name());
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            int code = db.update(SQLiteDbHelper.TAB_BUDGET,values,"BudegetId =?",new String[]{budget.getBudegetId()+""});
+            int x = code;
         }catch (Exception e){
             e.printStackTrace();
         }
-        ContentValues values = new ContentValues();
-        values.put("BudegetId",getRandomBudgetId());
-        values.put("date",budget.getDate());
-        values.put("type",budget.getType());
-        values.put("BudegetTypeId",budget.getBudegetTypeId());
-        values.put("note",budget.getNote());
-        values.put("num",budget.getNum());
-        values.put("UserId",mUser.getUserId());
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
-        int code = db.update(SQLiteDbHelper.TAB_BUDGET,values,"BudegetId =?",new String[]{budget.getBudegetId()+""});
-        int x = code;
+
     }
 
     //添加收支数据
@@ -215,10 +304,46 @@ public class DBManger {
             values.put("BudegetTypeId",budge.getBudegetTypeId());
             values.put("note",budge.getNote());
             values.put("num",budge.getNum());
+            values.put("account_person_name",budge.getAccount_person_name());
             values.put("UserId",mUser.getUserName());
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             long code = db.insert(SQLiteDbHelper.TAB_BUDGET,null,values);
+
+            //添加开支的数据的时候更新余额表
+            updateRemain(budge);
             listener.onSuccess();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void updateRemain(Budget budge){
+        try{
+            int income = 0;
+            int expense = 0;
+            //查询该人员的所有开支数据
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET,null," account_person_name=? ",new String[]{budge.getAccount_person_name()},null,null,null);
+            while (cursor.moveToNext()){
+                String BudegetId = cursor.getString(cursor.getColumnIndex("BudegetId"));
+                String date = cursor.getString(cursor.getColumnIndex("date"));
+                String type = cursor.getString(cursor.getColumnIndex("type"));
+                String BudegetTypeId = cursor.getString(cursor.getColumnIndex("BudegetTypeId"));
+                String note = cursor.getString(cursor.getColumnIndex("note"));
+                String num = cursor.getString(cursor.getColumnIndex("num"));
+                String UserId = cursor.getString(cursor.getColumnIndex("UserId"));
+                String account_person_name = cursor.getString(cursor.getColumnIndex("account_person_name"));
+
+                if (type.equals("收入")){
+                    income = income+ Integer.parseInt(num);
+                }else{
+                    expense = expense+ Integer.parseInt(num);
+                }
+            }
+            int remaint = income - expense;
+            ContentValues values=  new ContentValues();
+            values.put("y_balance",remaint);
+            int code = db.update(SQLiteDbHelper.TAB_ACCOUNT_PERSON,values,"account_person_name =?",new String[]{budge.getAccount_person_name()});
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -234,11 +359,15 @@ public class DBManger {
             values.put("UserId",budgetType.getUserId());
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             long code = db.insert(SQLiteDbHelper.TAB_BUDGET_TYPE,null,values);
+
+
             Log.e("","");
         }catch (Exception e){
             e.printStackTrace();
         }
     }
+
+
 
     //生成随机10位的budgettypeid
     public String getRandomBudgettypeId(){
@@ -272,6 +401,7 @@ public class DBManger {
                 String note = cursor.getString(cursor.getColumnIndex("note"));
                 String num = cursor.getString(cursor.getColumnIndex("num"));
                 String UserId = cursor.getString(cursor.getColumnIndex("UserId"));
+                String account_person_name = cursor.getString(cursor.getColumnIndex("account_person_name"));
 
                 Budget budget = new Budget();
                 budget.setBudegetTypeId(BudegetTypeId);
@@ -281,10 +411,84 @@ public class DBManger {
                 budget.setNum(num);
                 budget.setDate(date);
                 budget.setUserId(UserId);
+                budget.setAccount_person_name(account_person_name);
 
                 budgets.add(budget);
             }
 
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return budgets;
+    }
+
+    //获取所有的收支记录
+    public List<Budget> getAllBudgetDataByAccountName(String ac_name){
+        List<Budget> budgets = new ArrayList<>();
+        try{
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            Cursor cursor = db.query(SQLiteDbHelper.TAB_BUDGET,null," account_person_name=? ",new String[]{ac_name},null,null,null);
+            while (cursor.moveToNext()){
+                String BudegetId = cursor.getString(cursor.getColumnIndex("BudegetId"));
+                String date = cursor.getString(cursor.getColumnIndex("date"));
+                String type = cursor.getString(cursor.getColumnIndex("type"));
+                String BudegetTypeId = cursor.getString(cursor.getColumnIndex("BudegetTypeId"));
+                String note = cursor.getString(cursor.getColumnIndex("note"));
+                String num = cursor.getString(cursor.getColumnIndex("num"));
+                String UserId = cursor.getString(cursor.getColumnIndex("UserId"));
+                String account_person_name = cursor.getString(cursor.getColumnIndex("account_person_name"));
+
+                Budget budget = new Budget();
+                budget.setBudegetTypeId(BudegetTypeId);
+                budget.setBudegetId(BudegetId);
+                budget.setType(type);
+                budget.setNote(note);
+                budget.setNum(num);
+                budget.setDate(date);
+                budget.setUserId(UserId);
+                budget.setAccount_person_name(account_person_name);
+
+                budgets.add(budget);
+            }
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return budgets;
+    }
+
+    //多条件模糊查询
+    public List<Budget> searchBudegets(Budget mBudget){
+        List<Budget> budgets = new ArrayList<>();
+        try{
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            Cursor cursor = db.rawQuery("select * from Budget where BudegetTypeId =? and account_person_name=? and date=?",new String[]{mBudget.getBudegetTypeId(),mBudget.getAccount_person_name(),mBudget.getDate()});
+            while (cursor.moveToNext()){
+
+                String BudegetId = cursor.getString(cursor.getColumnIndex("BudegetId"));
+                String date = cursor.getString(cursor.getColumnIndex("date"));
+                String type = cursor.getString(cursor.getColumnIndex("type"));
+                String BudegetTypeId = cursor.getString(cursor.getColumnIndex("BudegetTypeId"));
+                String note = cursor.getString(cursor.getColumnIndex("note"));
+                String num = cursor.getString(cursor.getColumnIndex("num"));
+                String UserId = cursor.getString(cursor.getColumnIndex("UserId"));
+                String account_person_name = cursor.getString(cursor.getColumnIndex("account_person_name"));
+
+                Budget budget = new Budget();
+                budget.setBudegetTypeId(BudegetTypeId);
+                budget.setBudegetId(BudegetId);
+                budget.setType(type);
+                budget.setNote(note);
+                budget.setNum(num);
+                budget.setDate(date);
+                budget.setUserId(UserId);
+                budget.setAccount_person_name(account_person_name);
+
+                budgets.add(budget);
+            }
+            db.close();
 
         }catch (Exception e){
             e.printStackTrace();
@@ -307,6 +511,7 @@ public class DBManger {
                 String note = cursor.getString(cursor.getColumnIndex("note"));
                 String num = cursor.getString(cursor.getColumnIndex("num"));
                 String UserId = cursor.getString(cursor.getColumnIndex("UserId"));
+                String account_person_name = cursor.getString(cursor.getColumnIndex("account_person_name"));
 
                 Budget budget = new Budget();
                 budget.setBudegetTypeId(BudegetTypeId);
@@ -316,6 +521,7 @@ public class DBManger {
                 budget.setNum(num);
                 budget.setDate(date);
                 budget.setUserId(UserId);
+                budget.setAccount_person_name(account_person_name);
 
                 if (!mTempData.containsKey(date)){
                     List<Budget> budgets = new ArrayList<>();
@@ -391,6 +597,8 @@ public class DBManger {
         }
         return note;
     }
+
+
 
     //获取对应的收支类型数据
     public List<BudgetType> getBudgetTypeByType(String type){
@@ -472,44 +680,6 @@ public class DBManger {
             e.printStackTrace();
         }
     }
-
-    public void saveHeadImg(Bitmap bitmap){
-        try{
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-            ContentValues values = new ContentValues();
-            values.put("HeadImg",baos.toByteArray());
-            SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            long code = db.update(SQLiteDbHelper.TAB_USER,values,"UserId=?",new String[]{mUser.getUserId()});
-            Log.e("","");
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public Bitmap getHeadImg(){
-        Bitmap bmpout = null;
-        try{
-
-            SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            Cursor cursor = db.rawQuery("select * from UserInfo where UserId=?",new String[]{mUser.getUserId()});
-            if (cursor.moveToFirst()){
-                byte[] in = cursor.getBlob(cursor.getColumnIndex("HeadImg"));
-                bmpout = BitmapFactory.decodeByteArray(in, 0, in.length);
-            }
-            return bmpout;
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-
-
-        return null;
-    }
-
-
-
 
     public interface IListener{
         public void onSuccess();

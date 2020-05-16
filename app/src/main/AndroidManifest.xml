@@ -25,6 +25,10 @@
         <activity android:name=".UpdateActivity"/>
         <activity android:name=".SearchAcountActivity"/>
         <activity android:name=".AddAcountActivity"/>
+        <activity android:name=".ForgetPwdActivity"/>
+        <activity android:name=".UpdatePwdActivity"/>
+        <activity android:name=".UpdatePersonActivity"/>
+        <activity android:name=".DeleteUserActivity"/>
     </application>
 
 </manifest>

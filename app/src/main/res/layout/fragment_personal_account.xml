@@ -8,6 +8,13 @@
     android:fitsSystemWindows="true"
     android:layout_gravity="center"
     >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/personnal_remain_tv"
+        android:text="余额："
+        android:textSize="30dp"
+        ></TextView>
     <com.smart.account.view.LeftSwipeMenuRecyclerView
         android:layout_width="match_parent"
         android:layout_height="0dp"

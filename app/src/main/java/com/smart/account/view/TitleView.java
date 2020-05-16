@@ -36,11 +36,11 @@ public class TitleView extends RelativeLayout{
     public void init(){
         LayoutInflater.from(getContext()).inflate(R.layout.title_view,this,true);
 //        mBackBtn = findViewById(R.id.title_back_btn);
-//        mTitleView = findViewById(R.id.title_content);
+        mTitleView = findViewById(R.id.title_content);
     }
 
     public void setBackBtnVisible(boolean visible){
-        mBackBtn.setVisibility(visible? View.VISIBLE:View.GONE);
+//        mBackBtn.setVisibility(visible? View.VISIBLE:View.GONE);
     }
 
     public void setTitle(String title){
@@ -48,6 +48,6 @@ public class TitleView extends RelativeLayout{
     }
 
     public void setOnBackListener(OnClickListener listener){
-        mBackBtn.setOnClickListener(listener);
+//        mBackBtn.setOnClickListener(listener);
     }
 }

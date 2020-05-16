@@ -22,6 +22,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private String mName;
     private String mPassWord;
     private Button mLoginBtn;
+    private Button mForgetPwdBtn;
+    private Button mDeleteUserBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,27 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         mLoginBtn = findViewById(R.id.reg_login_btn);
         mLoginBtn.setOnClickListener(this);
+
+        mForgetPwdBtn = findViewById(R.id.login_to_forgetpwd_btn);
+        mDeleteUserBtn = findViewById(R.id.login_to_deleteuser_btn);
+        //忘记密码
+        mForgetPwdBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this, ForgetPwdActivity.class);
+                intent.putExtra("title","忘记密码");
+                startActivity(intent);
+            }
+        });
+        //删除用户
+        mDeleteUserBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this, DeleteUserActivity.class);
+                intent.putExtra("title","删除用户");
+                startActivity(intent);
+            }
+        });
 
         mNameEd.addTextChangedListener(new TextWatcher() {
             @Override
